@@ -1,3 +1,5 @@
+package TCP
+
 import java.io.{BufferedInputStream, BufferedOutputStream, PrintStream}
 import java.net.{ServerSocket, Socket}
 import java.text.SimpleDateFormat

@@ -17,7 +17,7 @@ import java.util.StringTokenizer;
 public class SimpleFTP {
 
     /**
-     * Create an instance of SimpleFTP.
+     * Create an instance of FTP.SimpleFTP.
      */
     public SimpleFTP() {
 
@@ -45,7 +45,7 @@ public class SimpleFTP {
     public synchronized void connect(String host, int port, String user,
                                      String pass) throws IOException {
         if (socket != null) {
-            throw new IOException("SimpleFTP is already connected. Disconnect first.");
+            throw new IOException("FTP.SimpleFTP is already connected. Disconnect first.");
         }
         socket = new Socket(host, port);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -55,7 +55,7 @@ public class SimpleFTP {
         String response = readLine();
         if (!response.startsWith("220 ")) {
             throw new IOException(
-                    "SimpleFTP received an unknown response when connecting to the FTP server: "
+                    "FTP.SimpleFTP received an unknown response when connecting to the FTP server: "
                             + response);
         }
 
@@ -64,7 +64,7 @@ public class SimpleFTP {
         response = readLine();
         if (!response.startsWith("331 ")) {
             throw new IOException(
-                    "SimpleFTP received an unknown response after sending the user: "
+                    "FTP.SimpleFTP received an unknown response after sending the user: "
                             + response);
         }
 
@@ -73,7 +73,7 @@ public class SimpleFTP {
         response = readLine();
         if (!response.startsWith("230 ")) {
             throw new IOException(
-                    "SimpleFTP was unable to log in with the supplied password: "
+                    "FTP.SimpleFTP was unable to log in with the supplied password: "
                             + response);
         }
 
@@ -125,7 +125,7 @@ public class SimpleFTP {
      */
     public synchronized boolean stor(File file) throws IOException {
         if (file.isDirectory()) {
-            throw new IOException("SimpleFTP cannot upload a directory.");
+            throw new IOException("FTP.SimpleFTP cannot upload a directory.");
         }
 
         String filename = file.getName();
@@ -146,7 +146,7 @@ public class SimpleFTP {
         sendLine("PASV");
         String response = readLine();
         if (!response.startsWith("227 ")) {
-            throw new IOException("SimpleFTP could not request passive mode: "
+            throw new IOException("FTP.SimpleFTP could not request passive mode: "
                     + response);
         }
 
@@ -163,7 +163,7 @@ public class SimpleFTP {
                 port = Integer.parseInt(tokenizer.nextToken()) * 256
                         + Integer.parseInt(tokenizer.nextToken());
             } catch (Exception e) {
-                throw new IOException("SimpleFTP received bad data link information: "
+                throw new IOException("FTP.SimpleFTP received bad data link information: "
                         + response);
             }
         }
@@ -175,7 +175,7 @@ public class SimpleFTP {
         response = readLine();
         if (!response.startsWith ("125 ")) {
             //if (!response.startsWith("150 ")) {
-            throw new IOException("SimpleFTP was not allowed to send the file: "
+            throw new IOException("FTP.SimpleFTP was not allowed to send the file: "
                     + response);
         }
 
@@ -219,7 +219,7 @@ public class SimpleFTP {
      */
     private void sendLine(String line) throws IOException {
         if (socket == null) {
-            throw new IOException("SimpleFTP is not connected.");
+            throw new IOException("FTP.SimpleFTP is not connected.");
         }
         try {
             writer.write(line + "\r\n");
