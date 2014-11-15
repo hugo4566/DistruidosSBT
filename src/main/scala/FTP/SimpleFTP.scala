@@ -38,19 +38,13 @@ class SimpleFTP {
     reader = new BufferedReader(new InputStreamReader(socket.getInputStream))
     writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream))
     var response: String = readLine
-    if (!response.startsWith("220 ")) {
-      throw new IOException("FTP.SimpleFTP received an unknown response when connecting to the FTP server: " + response)
-    }
+    validateResponse(response,"220 ")
     sendLine("USER " + user)
     response = readLine
-    if (!response.startsWith("331 ")) {
-      throw new IOException("FTP.SimpleFTP received an unknown response after sending the user: " + response)
-    }
+    validateResponse(response,"331 ")
     sendLine("PASS " + pass)
     response = readLine
-    if (!response.startsWith("230 ")) {
-      throw new IOException("FTP.SimpleFTP was unable to log in with the supplied password: " + response)
-    }
+    validateResponse(response,"230 ")
     System.out.println("Now logged in")
   }
 
@@ -71,16 +65,8 @@ class SimpleFTP {
    */
   def pwd: String = {
     sendLine("PWD")
-    var dir: String = null
     val response: String = readLine
-    if (response.startsWith("257 ")) {
-      val firstQuote: Int = response.indexOf('\"')
-      val secondQuote: Int = response.indexOf('\"', firstQuote + 1)
-      if (secondQuote > 0) {
-        dir = response.substring(firstQuote + 1, secondQuote)
-      }
-    }
-    return dir
+    return validateResponse(response,"257 ").toString
   }
 
   /**
@@ -112,42 +98,18 @@ class SimpleFTP {
    */
   def stor(inputStream: InputStream, filename: String): Boolean = {
 
-    def getIpPortfromPASV(response : String) : (String,Int) ={
-      var ip: String = null
-      var port: Int = -1
-      val opening: Int = response.indexOf('(')
-      val closing: Int = response.indexOf(')', opening + 1)
-      if (closing > 0) {
-        val dataLink: String = response.substring(opening + 1, closing)
-        val tokenizer: StringTokenizer = new StringTokenizer(dataLink, ",")
-        try {
-          ip = tokenizer.nextToken + "." + tokenizer.nextToken + "." + tokenizer.nextToken + "." + tokenizer.nextToken
-          port = Integer.parseInt(tokenizer.nextToken) * 256 + Integer.parseInt(tokenizer.nextToken)
-        }
-        catch {
-          case e: Exception => {
-            throw new IOException("FTP.SimpleFTP received bad data link information: " + response)
-          }
-        }
-      }
-      (ip,port)
-    }
-
     val input: BufferedInputStream = new BufferedInputStream(inputStream)
     sendLine("PASV")
     var response: String = readLine
-    if (!response.startsWith("227 ")) {
-      throw new IOException("FTP.SimpleFTP could not request passive mode: " + response)
-    }
+    validateResponse(response,"227 ")
 
     val (ip,port) = getIpPortfromPASV(response)
 
     sendLine("STOR " + filename)
     val dataSocket: Socket = new Socket(ip, port)
     response = readLine
-    if (!response.startsWith("125 ")) {
-      throw new IOException("FTP.SimpleFTP was not allowed to send the file: " + response)
-    }
+    validateResponse(response,"125 ")
+
     val output: BufferedOutputStream = new BufferedOutputStream(dataSocket.getOutputStream)
     val buffer: Array[Byte] = new Array[Byte](4096)
     var bytesRead: Int = 0
@@ -211,6 +173,66 @@ class SimpleFTP {
       System.out.println("< " + line)
     }
     return line
+  }
+
+  def getIpPortfromPASV(response : String) : (String,Int) ={
+    var ip: String = null
+    var port: Int = -1
+    val opening: Int = response.indexOf('(')
+    val closing: Int = response.indexOf(')', opening + 1)
+    if (closing > 0) {
+      val dataLink: String = response.substring(opening + 1, closing)
+      val tokenizer: StringTokenizer = new StringTokenizer(dataLink, ",")
+      try {
+        ip = tokenizer.nextToken + "." + tokenizer.nextToken + "." + tokenizer.nextToken + "." + tokenizer.nextToken
+        port = Integer.parseInt(tokenizer.nextToken) * 256 + Integer.parseInt(tokenizer.nextToken)
+      }
+      catch {
+        case e: Exception => {
+          throw new IOException("FTP.SimpleFTP received bad data link information: " + response)
+        }
+      }
+    }
+    (ip,port)
+  }
+
+  def validateResponse(response : String,codigo : String) : Any = codigo match {
+    case "220 " => {
+      if (!response.startsWith(codigo)) {
+        throw new IOException("SimpleFTP received an unknown response when connecting to the FTP server: " + response)
+      }
+    }
+    case "331 " => {
+      if (!response.startsWith(codigo)) {
+        throw new IOException("SimpleFTP received an unknown response after sending the user: " + response)
+      }
+    }
+    case "230 " => {
+      if (!response.startsWith(codigo)) {
+        throw new IOException("SimpleFTP was unable to log in with the supplied password: " + response)
+      }
+    }
+    case "257 " => {
+      var dir : String = null;
+      if (response.startsWith(codigo)) {
+        val firstQuote: Int = response.indexOf('\"')
+        val secondQuote: Int = response.indexOf('\"', firstQuote + 1)
+        if (secondQuote > 0) {
+          dir = response.substring(firstQuote + 1, secondQuote)
+        }
+      }
+      dir
+    }
+    case "257 " => {
+      if (!response.startsWith("227 ")) {
+        throw new IOException("FTP.SimpleFTP could not request passive mode: " + response)
+      }
+    }
+    case "125 " => {
+      if (!response.startsWith("125 ")) {
+        throw new IOException("FTP.SimpleFTP was not allowed to send the file: " + response)
+      }
+    }
   }
 
   private var socket: Socket = null
