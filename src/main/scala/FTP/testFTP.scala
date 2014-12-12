@@ -7,6 +7,7 @@ object testFTP {
   def main(args: Array[String]) {
     val simpleFTP = new SimpleFTP()
     simpleFTP.connect("ftp.xpg.com.br")
-    println(simpleFTP.pwd)
+    simpleFTP.pwd()
+    simpleFTP.quit()
   }
 }
