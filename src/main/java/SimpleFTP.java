@@ -49,8 +49,9 @@ public class SimpleFTP {
 
     /**
      * Send this command to begin the login process. username should be a valid username on the system, or "anonymous" to initiate an anonymous login.
-     * @param user
+     * @param user login
      * @return response
+     * @throws IOException
      */
     private synchronized String user(String user) throws IOException {
         sendLine("USER " + user);
@@ -59,7 +60,7 @@ public class SimpleFTP {
 
     /**
      * After sending the USER command, send this command to complete the login process. (Note, however, that an ACCT command may have to be used on some systems.)
-     * @param pass
+     * @param pass senha
      * @return response
      */
     private synchronized String pass(String pass) throws IOException {
@@ -73,7 +74,7 @@ public class SimpleFTP {
 
     /**
      * Makes the given directory be the current directory on the remote host.
-     * @param dir
+     * @param dir diretorio
      * @return response
      */
     private synchronized String cwd(String dir) throws IOException {
@@ -163,7 +164,7 @@ public class SimpleFTP {
 
     /**
      * Begins transmission of a file to the remote site. Must be preceded by either a PORT command or a PASV command so the server knows where to accept data from.
-     * @param filename
+     * @param filename nome do arquivo que deseja guardar
      * @return response
      */
     private synchronized String stor(String filename) throws IOException {
