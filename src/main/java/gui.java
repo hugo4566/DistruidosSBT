@@ -22,8 +22,6 @@ public class gui {
         int ultimoCod = 1;
 
         ArrayList listaFTP = new ArrayList();
-        listaFTP.add(new FileFTP(1, "nome"+ultimoCod++, 0, "data modificado"));
-        listaFTP.add(new FileFTP(1, "nome"+ultimoCod++, 0, "data modificado"));
 
         //cria o modelo de Produto
         FileFTPTableModel model = new FileFTPTableModel(listaFTP);
@@ -36,7 +34,8 @@ public class gui {
                 statusLabel.setText(simpleFTP.connect(serverField.getText(), loginField.getText(), new String(senhaField.getPassword())));
                 //simpleFTP.nlst();
                 //simpleFTP.mkd("dir_teste");
-                simpleFTP.list();
+                model.addAll(simpleFTP.list());
+                table.updateUI();
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

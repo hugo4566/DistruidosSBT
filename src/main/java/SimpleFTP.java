@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 /**
@@ -86,24 +87,34 @@ public class SimpleFTP {
         return null;
     }
 
-    public synchronized String list() throws IOException {
+    public synchronized ArrayList<FileFTP> list() throws IOException {
         sendLine("PASV");
         ConexaoDados conexaoDados = new ConexaoDados(response()).invoke();
         Socket dataSocket = new Socket(conexaoDados.getIp(), conexaoDados.getPort());
 
         sendLine("LIST");
         response();
+
+        ArrayList<FileFTP> listaFTP = new ArrayList<>();
         StringBuilder output = new StringBuilder();
         BufferedInputStream input = new BufferedInputStream(dataSocket.getInputStream());
         byte[] buffer = new byte[4096];
         int bytesRead = 0;
         while ((bytesRead = input.read(buffer)) != -1) {
-            output.append(new String(buffer, 0, bytesRead));
+            String recebido = new String(buffer, 0, bytesRead);
+            output.append(recebido);
         }
+        String[] listaArquivos = output.toString().split("\\r\\n");
+        for (int i = 0; i < listaArquivos.length; i++) {
+            FileFTP fileFTP = new FileFTP(listaArquivos[i]);
+            listaFTP.add(fileFTP);
+        }
+
         input.close();
+        response();
 
         System.out.println(output.toString());
-        return response();
+        return listaFTP;
     }
 
     private synchronized String mdtm() {

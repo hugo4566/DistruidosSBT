@@ -18,6 +18,8 @@ public class FileFTPTableModel extends AbstractTableModel {
         files.addAll(lista);
     }
 
+
+
     public int getRowCount() {
         return files.size();
     }
@@ -61,7 +63,13 @@ public class FileFTPTableModel extends AbstractTableModel {
         return false;
     }
 
-    public void addEmptyRow(FileFTP fileFTP) {
+    public void addRow(FileFTP fileFTP) {
         files.add(fileFTP);
+    }
+
+    public void addAll(ArrayList filesFTP) {
+        for (int i = 0; i < filesFTP.size() ; i++) {
+            files.add(filesFTP.get(i));
+        }
     }
 }

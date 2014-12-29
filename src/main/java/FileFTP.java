@@ -8,6 +8,14 @@ public class FileFTP {
     private int tamanho;
     private String modificado;
 
+    public FileFTP(String response) {
+        String[] partes = response.split("\\s+");
+        this.tipo = Integer.valueOf(partes[1]);
+        this.nome = partes[8];
+        this.tamanho = Integer.valueOf(partes[4]);
+        this.modificado = partes[5]+" "+partes[6]+" "+partes[7];
+    }
+
     public FileFTP(int tipo, String nome, int tamanho, String modificado) {
         this.tipo = tipo;
         this.nome = nome;
