@@ -24,67 +24,112 @@ public class SimpleFTP {
     }
 
     /**
-     * Connects to the default port of an FTP server and logs in as
-     * anonymous/anonymous.
-     */
-    public synchronized void connect(String host) throws IOException {
-        connect(host, 21);
-    }
-
-    /**
-     * Connects to an FTP server and logs in as anonymous/anonymous.
-     */
-    public synchronized void connect(String host, int port) throws IOException {
-        connect(host, port, "hugo4566", "teste123");
-    }
-
-    /**
      * Connects to an FTP server and logs in with the supplied username and
      * password.
      */
-    public synchronized void connect(String host, int port, String user,
-                                     String pass) throws IOException {
+    public synchronized void connect(String host, String login, String senha) throws IOException {
         if (socket != null) {
-            throw new IOException("FTP.SimpleFTP is already connected. Disconnect first.");
+            throw new IOException("SimpleFTP is already connected. Disconnect first.");
         }
-        socket = new Socket(host, port);
+        socket = new Socket(host, 21);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         writer = new BufferedWriter(
                 new OutputStreamWriter(socket.getOutputStream()));
 
-        String response = readLine();
-        if (!response.startsWith("220 ")) {
-            throw new IOException(
-                    "FTP.SimpleFTP received an unknown response when connecting to the FTP server: "
-                            + response);
-        }
+        response();
+        user(login);
+        pass(senha);
 
-        sendLine("USER " + user);
-
-        response = readLine();
-        if (!response.startsWith("331 ")) {
-            throw new IOException(
-                    "FTP.SimpleFTP received an unknown response after sending the user: "
-                            + response);
-        }
-
-        sendLine("PASS " + pass);
-
-        response = readLine();
-        if (!response.startsWith("230 ")) {
-            throw new IOException(
-                    "FTP.SimpleFTP was unable to log in with the supplied password: "
-                            + response);
-        }
-
-        // Now logged in.
         System.out.println("Now logged in");
     }
 
+    /*************************
+     **** Common commands ****
+     *************************/
+
     /**
-     * Disconnects from the FTP server.
+     * Send this command to begin the login process. username should be a valid username on the system, or "anonymous" to initiate an anonymous login.
+     * @param user
+     * @return response
      */
-    public synchronized void disconnect() throws IOException {
+    private synchronized String user(String user) throws IOException {
+        sendLine("USER " + user);
+        return response();
+    }
+
+    /**
+     * After sending the USER command, send this command to complete the login process. (Note, however, that an ACCT command may have to be used on some systems.)
+     * @param pass
+     * @return response
+     */
+    private synchronized String pass(String pass) throws IOException {
+        sendLine("PASS " + pass);
+        return response();
+    }
+
+    private synchronized String abor() {
+        return null;
+    }
+
+    /**
+     * Makes the given directory be the current directory on the remote host.
+     * @param dir
+     * @return response
+     */
+    private synchronized String cwd(String dir) throws IOException {
+        sendLine("CWD " + dir);
+        return response();
+    }
+
+    private synchronized String dele() {
+        return null;
+    }
+
+    private synchronized String list() {
+        return null;
+    }
+
+    private synchronized String mdtm() {
+        return null;
+    }
+
+    private synchronized String mkd() {
+        return null;
+    }
+
+    private synchronized String nlst() {
+        return null;
+    }
+
+    /**
+     * Tells the server to enter "passive mode". In passive mode, the server will wait for the client to establish a connection with it rather than attempting to connect
+     * to a client-specified port. The server will respond with the address of the port it is listening on, with a message like:
+     * 227 Entering Passive Mode (a1,a2,a3,a4,p1,p2)
+     * where a1.a2.a3.a4 is the IP address and p1*256+p2 is the port number.
+     * @return response
+     */
+    private synchronized String pasv() throws IOException {
+        sendLine("PASV");
+        return response();
+    }
+
+    private synchronized String port() {
+        return null;
+    }
+
+    /**
+     * Returns the name of the current directory on the remote host.
+     * @return response
+     */
+    private synchronized String pwd() throws IOException {
+        sendLine("PWD");
+        return response();
+    }
+
+    /**
+     * Terminates the command connection.
+     */
+    public synchronized void quit() throws IOException {
         try {
             sendLine("QUIT");
         } finally {
@@ -92,30 +137,38 @@ public class SimpleFTP {
         }
     }
 
-    /**
-     * Returns the working directory of the FTP server it is connected to.
-     */
-    public synchronized String pwd() throws IOException {
-        sendLine("PWD");
-        String dir = null;
-        String response = readLine();
-        if (response.startsWith("257 ")) {
-            int firstQuote = response.indexOf('\"');
-            int secondQuote = response.indexOf('\"', firstQuote + 1);
-            if (secondQuote > 0) {
-                dir = response.substring(firstQuote + 1, secondQuote);
-            }
-        }
-        return dir;
+    private synchronized String retr() {
+        return null;
+    }
+
+    private synchronized String rmd() {
+        return null;
+    }
+
+    private synchronized String rnfr() {
+        return null;
+    }
+
+    private synchronized String rnto() {
+        return null;
+    }
+
+    private synchronized String site() {
+        return null;
+    }
+
+    private synchronized String size() {
+        return null;
     }
 
     /**
-     * Changes the working directory (like cd). Returns true if successful.
+     * Begins transmission of a file to the remote site. Must be preceded by either a PORT command or a PASV command so the server knows where to accept data from.
+     * @param filename
+     * @return response
      */
-    public synchronized boolean cwd(String dir) throws IOException {
-        sendLine("CWD " + dir);
-        String response = readLine();
-        return (response.startsWith("250 "));
+    private synchronized String stor(String filename) throws IOException {
+        sendLine("STOR " + filename);
+        return response();
     }
 
     /**
@@ -125,9 +178,8 @@ public class SimpleFTP {
      */
     public synchronized boolean stor(File file) throws IOException {
         if (file.isDirectory()) {
-            throw new IOException("FTP.SimpleFTP cannot upload a directory.");
+            throw new IOException("SimpleFTP cannot upload a directory.");
         }
-
         String filename = file.getName();
 
         return stor(new FileInputStream(file), filename);
@@ -144,7 +196,7 @@ public class SimpleFTP {
         BufferedInputStream input = new BufferedInputStream(inputStream);
 
         sendLine("PASV");
-        String response = readLine();
+        String response = response();
         if (!response.startsWith("227 ")) {
             throw new IOException("FTP.SimpleFTP could not request passive mode: "
                     + response);
@@ -172,12 +224,7 @@ public class SimpleFTP {
 
         Socket dataSocket = new Socket(ip, port);
 
-        response = readLine();
-        if (!response.startsWith ("125 ")) {
-            //if (!response.startsWith("150 ")) {
-            throw new IOException("FTP.SimpleFTP was not allowed to send the file: "
-                    + response);
-        }
+        response = response();
 
         BufferedOutputStream output = new BufferedOutputStream(dataSocket
                 .getOutputStream());
@@ -190,7 +237,7 @@ public class SimpleFTP {
         output.close();
         input.close();
 
-        response = readLine();
+        response = response();
         return response.startsWith("226 ");
     }
 
@@ -199,7 +246,7 @@ public class SimpleFTP {
      */
     public synchronized boolean bin() throws IOException {
         sendLine("TYPE I");
-        String response = readLine();
+        String response = response();
         return (response.startsWith("200 "));
     }
 
@@ -210,7 +257,7 @@ public class SimpleFTP {
      */
     public synchronized boolean ascii() throws IOException {
         sendLine("TYPE A");
-        String response = readLine();
+        String response = response();
         return (response.startsWith("200 "));
     }
 
@@ -233,11 +280,11 @@ public class SimpleFTP {
         }
     }
 
-    private String readLine() throws IOException {
+    private String response() throws IOException {
         String line = reader.readLine();
-        if (DEBUG) {
+        //if (DEBUG) {
             System.out.println("< " + line);
-        }
+        //}
         return line;
     }
 

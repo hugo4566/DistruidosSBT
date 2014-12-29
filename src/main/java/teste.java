@@ -6,7 +6,7 @@ import java.io.IOException;
 public class teste {
     public static void main(String[] args) throws IOException {
         SimpleFTP simpleFTP = new SimpleFTP();
-        simpleFTP.connect("ftp.xpg.com.br");
+        simpleFTP.connect("ftp.xpg.com.br","hugo4566","teste123");
         System.out.println(simpleFTP.pwd());
     }
 }
