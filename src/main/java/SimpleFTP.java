@@ -27,9 +27,9 @@ public class SimpleFTP {
      * Connects to an FTP server and logs in with the supplied username and
      * password.
      */
-    public synchronized void connect(String host, String login, String senha) throws IOException {
+    public synchronized String connect(String host, String login, String senha) throws IOException {
         if (socket != null) {
-            throw new IOException("SimpleFTP is already connected. Disconnect first.");
+            throw new IOException("Already connected. Disconnect first.");
         }
         socket = new Socket(host, 21);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -38,9 +38,9 @@ public class SimpleFTP {
 
         response();
         user(login);
-        pass(senha);
+        if(pass(senha).startsWith("530")) return "Login/Senha Errado";
 
-        System.out.println("Now logged in");
+        return "Now logged in";
     }
 
     /*************************
@@ -86,20 +86,53 @@ public class SimpleFTP {
         return null;
     }
 
-    private synchronized String list() {
-        return null;
+    public synchronized String list() throws IOException {
+        sendLine("PASV");
+        ConexaoDados conexaoDados = new ConexaoDados(response()).invoke();
+        Socket dataSocket = new Socket(conexaoDados.getIp(), conexaoDados.getPort());
+
+        sendLine("LIST");
+        response();
+        StringBuilder output = new StringBuilder();
+        BufferedInputStream input = new BufferedInputStream(dataSocket.getInputStream());
+        byte[] buffer = new byte[4096];
+        int bytesRead = 0;
+        while ((bytesRead = input.read(buffer)) != -1) {
+            output.append(new String(buffer, 0, bytesRead));
+        }
+        input.close();
+
+        System.out.println(output.toString());
+        return response();
     }
 
     private synchronized String mdtm() {
         return null;
     }
 
-    private synchronized String mkd() {
-        return null;
+    public synchronized String mkd(String dirName) throws IOException {
+        sendLine("MKD "+dirName);
+        return response();
     }
 
-    private synchronized String nlst() {
-        return null;
+    public synchronized String nlst() throws IOException {
+        sendLine("PASV");
+        ConexaoDados conexaoDados = new ConexaoDados(response()).invoke();
+        Socket dataSocket = new Socket(conexaoDados.getIp(), conexaoDados.getPort());
+
+        sendLine("NLST");
+        response();
+        StringBuilder output = new StringBuilder();
+        BufferedInputStream input = new BufferedInputStream(dataSocket.getInputStream());
+        byte[] buffer = new byte[4096];
+        int bytesRead = 0;
+        while ((bytesRead = input.read(buffer)) != -1) {
+            output.append(new String(buffer, 0, bytesRead));
+        }
+        input.close();
+
+        System.out.println(output.toString());
+        return response();
     }
 
     /**
@@ -122,7 +155,7 @@ public class SimpleFTP {
      * Returns the name of the current directory on the remote host.
      * @return response
      */
-    private synchronized String pwd() throws IOException {
+    public synchronized String pwd() throws IOException {
         sendLine("PWD");
         return response();
     }
