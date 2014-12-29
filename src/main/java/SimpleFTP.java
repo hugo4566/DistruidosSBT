@@ -176,7 +176,7 @@ public class SimpleFTP {
      * transfer was successful. The file is sent in passive mode to avoid NAT or
      * firewall problems at the client end.
      */
-    public synchronized boolean stor(File file) throws IOException {
+    public synchronized String stor(File file) throws IOException {
         if (file.isDirectory()) {
             throw new IOException("SimpleFTP cannot upload a directory.");
         }
@@ -190,42 +190,16 @@ public class SimpleFTP {
      * transfer was successful. The file is sent in passive mode to avoid NAT or
      * firewall problems at the client end.
      */
-    public synchronized boolean stor(InputStream inputStream, String filename)
+    private synchronized String stor(InputStream inputStream, String filename)
             throws IOException {
 
-        BufferedInputStream input = new BufferedInputStream(inputStream);
-
         sendLine("PASV");
-        String response = response();
-        if (!response.startsWith("227 ")) {
-            throw new IOException("FTP.SimpleFTP could not request passive mode: "
-                    + response);
-        }
+        ConexaoDados conexaoDados = new ConexaoDados(response()).invoke();
+        Socket dataSocket = new Socket(conexaoDados.getIp(), conexaoDados.getPort());
 
-        String ip = null;
-        int port = -1;
-        int opening = response.indexOf('(');
-        int closing = response.indexOf(')', opening + 1);
-        if (closing > 0) {
-            String dataLink = response.substring(opening + 1, closing);
-            StringTokenizer tokenizer = new StringTokenizer(dataLink, ",");
-            try {
-                ip = tokenizer.nextToken() + "." + tokenizer.nextToken() + "."
-                        + tokenizer.nextToken() + "." + tokenizer.nextToken();
-                port = Integer.parseInt(tokenizer.nextToken()) * 256
-                        + Integer.parseInt(tokenizer.nextToken());
-            } catch (Exception e) {
-                throw new IOException("FTP.SimpleFTP received bad data link information: "
-                        + response);
-            }
-        }
+        stor(filename);
 
-        sendLine("STOR " + filename);
-
-        Socket dataSocket = new Socket(ip, port);
-
-        response = response();
-
+        BufferedInputStream input = new BufferedInputStream(inputStream);
         BufferedOutputStream output = new BufferedOutputStream(dataSocket
                 .getOutputStream());
         byte[] buffer = new byte[4096];
@@ -237,17 +211,15 @@ public class SimpleFTP {
         output.close();
         input.close();
 
-        response = response();
-        return response.startsWith("226 ");
+        return response();
     }
 
     /**
      * Enter binary mode for sending binary files.
      */
-    public synchronized boolean bin() throws IOException {
+    public synchronized String bin() throws IOException {
         sendLine("TYPE I");
-        String response = response();
-        return (response.startsWith("200 "));
+        return response();
     }
 
     /**
@@ -255,10 +227,9 @@ public class SimpleFTP {
      * Make sure you use binary mode if you are sending images or other binary
      * data, as ASCII mode is likely to corrupt them.
      */
-    public synchronized boolean ascii() throws IOException {
+    public synchronized String ascii() throws IOException {
         sendLine("TYPE A");
-        String response = response();
-        return (response.startsWith("200 "));
+        return response();
     }
 
     /**
@@ -266,7 +237,7 @@ public class SimpleFTP {
      */
     private void sendLine(String line) throws IOException {
         if (socket == null) {
-            throw new IOException("FTP.SimpleFTP is not connected.");
+            throw new IOException("SimpleFTP is not connected.");
         }
         try {
             writer.write(line + "\r\n");
@@ -294,6 +265,44 @@ public class SimpleFTP {
 
     private BufferedWriter writer = null;
 
-    private static boolean DEBUG = false;
+    private static boolean DEBUG = true;
 
+    protected class ConexaoDados {
+        private String response;
+        private String ip;
+        private int port;
+
+        public ConexaoDados(String response) {
+            this.response = response;
+        }
+
+        public String getIp() {
+            return ip;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public ConexaoDados invoke() throws IOException {
+            ip = null;
+            port = -1;
+            int opening = response.indexOf('(');
+            int closing = response.indexOf(')', opening + 1);
+            if (closing > 0) {
+                String dataLink = response.substring(opening + 1, closing);
+                StringTokenizer tokenizer = new StringTokenizer(dataLink, ",");
+                try {
+                    ip = tokenizer.nextToken() + "." + tokenizer.nextToken() + "."
+                            + tokenizer.nextToken() + "." + tokenizer.nextToken();
+                    port = Integer.parseInt(tokenizer.nextToken()) * 256
+                            + Integer.parseInt(tokenizer.nextToken());
+                } catch (Exception e) {
+                    throw new IOException("SimpleFTP received bad data link information: "
+                            + response);
+                }
+            }
+            return this;
+        }
+    }
 }
