@@ -1,8 +1,4 @@
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -17,7 +13,6 @@ public class gui {
     private JButton conectarButton;
     private JPanel panel;
     private JLabel statusLabel;
-    private JScrollPane jscrollPane;
     private JTable table;
 
     public gui() {
@@ -26,7 +21,7 @@ public class gui {
         senhaField.setText("teste123");
         int ultimoCod = 1;
 
-        ArrayList<FileFTP> listaFTP = new ArrayList<FileFTP>();
+        ArrayList listaFTP = new ArrayList();
         listaFTP.add(new FileFTP(1, "nome"+ultimoCod++, 0, "data modificado"));
         listaFTP.add(new FileFTP(1, "nome"+ultimoCod++, 0, "data modificado"));
 
@@ -52,7 +47,7 @@ public class gui {
     public static void main(String[] args) {
         JFrame frame = new JFrame("gui");
         frame.setContentPane(new gui().panel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
     }

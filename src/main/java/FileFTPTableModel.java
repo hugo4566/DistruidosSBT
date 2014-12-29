@@ -7,9 +7,6 @@ import java.util.List;
  */
 public class FileFTPTableModel extends AbstractTableModel {
 
-    private final int COL_NOME = 0;
-    private final int COL_QUANT = 1;
-
     private List files;
 
     public FileFTPTableModel() {
