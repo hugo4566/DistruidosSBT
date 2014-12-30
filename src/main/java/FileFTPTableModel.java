@@ -1,4 +1,5 @@
 import javax.swing.table.AbstractTableModel;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,13 @@ public class FileFTPTableModel extends AbstractTableModel {
     }
 
 
+    public List getObjectsRows(int[] numRows){
+        ArrayList<FileFTP> tempFiles = new ArrayList();
+        for (int i = 0; i < numRows.length; i++) {
+            tempFiles.add((FileFTP) files.get(numRows[i]));
+        }
+        return tempFiles;
+    }
 
     public int getRowCount() {
         return files.size();
@@ -49,11 +57,11 @@ public class FileFTPTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        FileFTP p = (FileFTP) files.get(rowIndex);
+        FileFTP f = (FileFTP) files.get(rowIndex);
         switch (columnIndex) {
-            case 0: return p.getNome();
-            case 1: return p.getTamanho();
-            case 2: return p.getModificado();
+            case 0: return "<html><font color=\""+(f.getTipo() == 1 ? "green\">" : "orange\">")+f.getNome()+"</font><html/>";
+            case 1: return f.getTamanho();
+            case 2: return f.getModificado();
             default: return "";
         }
     }

@@ -54,4 +54,14 @@ public class FileFTP {
     public void setModificado(String modificado) {
         this.modificado = modificado;
     }
+
+    @Override
+    public String toString() {
+        return "FileFTP{" +
+                "tipo=" + tipo +
+                ", nome='" + nome + '\'' +
+                ", tamanho=" + tamanho +
+                ", modificado='" + modificado + '\'' +
+                '}';
+    }
 }

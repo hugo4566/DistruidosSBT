@@ -86,8 +86,13 @@
           <component id="37e4e" class="javax.swing.JTable" binding="table">
             <constraints/>
             <properties>
-              <columnSelectionAllowed value="true"/>
+              <autoCreateRowSorter value="true"/>
+              <cellSelectionEnabled value="false"/>
+              <columnSelectionAllowed value="false"/>
+              <dragEnabled value="false"/>
               <fillsViewportHeight value="true"/>
+              <rowMargin value="0"/>
+              <rowSelectionAllowed value="true"/>
             </properties>
           </component>
         </children>
