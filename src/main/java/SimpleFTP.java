@@ -83,8 +83,9 @@ public class SimpleFTP {
         return response();
     }
 
-    private synchronized String dele() {
-        return null;
+    public synchronized String dele(String filename) throws IOException {
+        sendLine("DELE " + filename);
+        return response();
     }
 
     public synchronized ArrayList<FileFTP> list() throws IOException {
