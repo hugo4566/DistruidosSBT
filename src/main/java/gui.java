@@ -97,6 +97,11 @@ public class gui {
                         System.out.println("Directory " + listOfFiles[i].getName());
                     }
                 }
+
+                ArrayList listaFTP2 = new ArrayList();
+                FileFTPTableModel model2 = new FileFTPTableModel(listaFTP2);
+                model2.addTableModelListener(new InteractiveTableModelListener());
+                table1.setModel(model2);
             }
             else {
                 System.out.println("No Selection ");
