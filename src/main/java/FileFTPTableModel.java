@@ -80,4 +80,8 @@ public class FileFTPTableModel extends AbstractTableModel {
             files.add(filesFTP.get(i));
         }
     }
+
+    public void addRow(File file) {
+        files.add(new FileFTP(file));
+    }
 }

@@ -1,3 +1,5 @@
+import java.io.File;
+
 /**
  * Created by Hugo on 29/12/2014.
  */
@@ -21,6 +23,13 @@ public class FileFTP {
         this.nome = nome;
         this.tamanho = tamanho;
         this.modificado = modificado;
+    }
+
+    public FileFTP(File file) {
+        this.tipo = file.isFile() ? 2 : 1;
+        this.nome = file.getName();
+        this.tamanho = (int) file.getTotalSpace();
+        this.modificado = "";
     }
 
     public String getNome() {

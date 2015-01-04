@@ -90,18 +90,22 @@ public class gui {
                 File folder = new File(""+chooser.getSelectedFile());
                 File[] listOfFiles = folder.listFiles();
 
+                ArrayList listaFTP2 = new ArrayList();
+                FileFTPTableModel model2 = new FileFTPTableModel(listaFTP2);
+                model2.addTableModelListener(new InteractiveTableModelListener());
+                table1.setModel(model2);
+
+
                 for (int i = 0; i < listOfFiles.length; i++) {
                     if (listOfFiles[i].isFile()) {
                         System.out.println("File " + listOfFiles[i].getName());
                     } else if (listOfFiles[i].isDirectory()) {
                         System.out.println("Directory " + listOfFiles[i].getName());
                     }
+                    model2.addRow(listOfFiles[i]);
                 }
 
-                ArrayList listaFTP2 = new ArrayList();
-                FileFTPTableModel model2 = new FileFTPTableModel(listaFTP2);
-                model2.addTableModelListener(new InteractiveTableModelListener());
-                table1.setModel(model2);
+
             }
             else {
                 System.out.println("No Selection ");
